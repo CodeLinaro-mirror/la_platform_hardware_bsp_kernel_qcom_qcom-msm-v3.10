@@ -765,11 +765,7 @@ static void ffs_epfile_io_complete(struct usb_ep *_ep, struct usb_request *req)
 	}
 }
 
-#define MAX_BUF_LEN 16384
-/*USB CI (chipidea) controller driver cannot handle more than 16K and 
-new ADB version supports buffer sizes upto 256KB.This is fixed by limiting
-maximum buffer length to 16K to ffs driver. */
- 
+#define MAX_BUF_LEN	4096
 static ssize_t ffs_epfile_io(struct file *file,
 			     char __user *buf, size_t len, int read)
 {
@@ -781,7 +777,7 @@ static ssize_t ffs_epfile_io(struct file *file,
 	int halt;
 	int buffer_len = 0;
 
-	pr_debug("%s: len %zu, read %s\n", __func__, len, read ? "read" : "write");
+	pr_debug("%s: len %zu, read %d\n", __func__, len, read);
 
 	if (atomic_read(&epfile->error))
 		return -ENODEV;
@@ -885,11 +881,9 @@ first_try:
 		req->length   = buffer_len;
 
 		if (read) {
-			pr_debug("%s: out completion\n", __func__);
 			INIT_COMPLETION(ffs->epout_completion);
 			req->context  = done = &ffs->epout_completion;
 		} else {
-			pr_debug("%s: in completion\n", __func__);
 			INIT_COMPLETION(ffs->epin_completion);
 			req->context  = done = &ffs->epin_completion;
 		}
@@ -952,13 +946,6 @@ ffs_epfile_write(struct file *file, const char __user *buf, size_t len,
 {
 	ENTER();
 
-	pr_debug("%s: len:%u\n", __func__, len);
-
-	if (len > MAX_BUF_LEN) {
-		len = MAX_BUF_LEN;
-		pr_debug("%s: new_len:%u\n", __func__, len);
-	}
-
 	return ffs_epfile_io(file, (char __user *)buf, len, 0);
 }
 
@@ -967,7 +954,6 @@ ffs_epfile_read(struct file *file, char __user *buf, size_t len, loff_t *ptr)
 {
 	ENTER();
 
-	pr_debug("%s: len:%u\n", __func__, len);
 	return ffs_epfile_io(file, buf, len, 1);
 }
 
