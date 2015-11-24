@@ -6715,9 +6715,12 @@ hdd_adapter_t* hdd_open_adapter( hdd_context_t *pHddCtx, tANI_U8 session_type,
           mutex_lock(&pHddCtx->tdls_lock);
 #endif
 
-         pAdapter->wdev.iftype = (session_type == WLAN_HDD_P2P_CLIENT) ?
-                                  NL80211_IFTYPE_P2P_CLIENT:
-                                  NL80211_IFTYPE_STATION;
+          if (session_type == WLAN_HDD_INFRA_STATION)
+             pAdapter->wdev.iftype = NL80211_IFTYPE_STATION;
+          else if (session_type == WLAN_HDD_P2P_DEVICE)
+             pAdapter->wdev.iftype = NL80211_IFTYPE_P2P_DEVICE;
+          else
+             pAdapter->wdev.iftype = NL80211_IFTYPE_P2P_CLIENT;
 
          pAdapter->device_mode = session_type;
 #ifdef FEATURE_WLAN_TDLS
