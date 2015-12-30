@@ -922,12 +922,12 @@ first_try:
 			spin_unlock_irq(&epfile->ffs->eps_lock);
 			if (read && ret > 0) {
 				if (len != MAX_BUF_LEN && ret < len)
-					pr_err("less data(%zd) recieved than intended length(%zu)\n",
+					pr_err("less data(%zd) received than intended length(%zu)\n",
 								ret, len);
 				if (ret > len) {
-					ret = -EOVERFLOW;
-					pr_err("More data(%zd) recieved than intended length(%zu)\n",
+					pr_err("More data(%zd) received than intended length(%zu)\n",
 								ret, len);
+					ret = -EOVERFLOW;
 				} else if (unlikely(copy_to_user(
 							buf, data, ret))) {
 					pr_err("Fail to copy to user len:%zd\n",
