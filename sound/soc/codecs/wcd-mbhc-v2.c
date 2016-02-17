@@ -699,6 +699,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		mbhc->zl = mbhc->zr = 0;
 		pr_debug("%s: Reporting removal %d(%x)\n", __func__,
 			 jack_type, mbhc->hph_status);
+		switch_set_state(&mbhc->sdev, 0);
 		wcd_mbhc_jack_report(mbhc, &mbhc->headset_jack,
 				mbhc->hph_status, WCD_MBHC_JACK_MASK);
 		wcd_mbhc_set_and_turnoff_hph_padac(mbhc);
@@ -767,6 +768,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 					&mbhc->zl, &mbhc->zr);
 		pr_debug("%s: Reporting insertion %d(%x)\n", __func__,
 			 jack_type, mbhc->hph_status);
+		switch_set_state(&mbhc->sdev, 1);
 		wcd_mbhc_jack_report(mbhc, &mbhc->headset_jack,
 				    mbhc->hph_status, WCD_MBHC_JACK_MASK);
 		wcd_mbhc_clr_and_turnon_hph_padac(mbhc);
@@ -2067,6 +2069,11 @@ int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_codec *codec,
 		return -EINVAL;
 	}
 
+	mbhc->sdev.name = "h2w";
+	ret = switch_dev_register(&mbhc->sdev);
+	if (ret < 0)
+		pr_err("Could not register SWITCH \n");
+
 	if (mbhc->headset_jack.jack == NULL) {
 		ret = snd_soc_jack_new(codec, "Headset Jack",
 				WCD_MBHC_JACK_MASK, &mbhc->headset_jack);
@@ -2235,6 +2242,7 @@ void wcd_mbhc_deinit(struct wcd_mbhc *mbhc)
 	wcd9xxx_spmi_free_irq(mbhc->intr_ids->hph_right_ocp, mbhc);
 	msm8x16_unregister_notifier(codec, &mbhc->nblock);
 	mutex_destroy(&mbhc->codec_resource_lock);
+	switch_dev_unregister(&mbhc->sdev);
 }
 EXPORT_SYMBOL(wcd_mbhc_deinit);
 
