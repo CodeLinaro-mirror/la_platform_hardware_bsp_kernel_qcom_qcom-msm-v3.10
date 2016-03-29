@@ -542,10 +542,11 @@
         status = "ok";
         qcom,charging-disabled;
         qcom,disable-follow-on-reset;
+        qcom,batt-if-disabled;
 };
 
 &pm8916_bms {
-        status = "ok";
+        status = "disabled";
         qcom,disable-bms;
 };
 
