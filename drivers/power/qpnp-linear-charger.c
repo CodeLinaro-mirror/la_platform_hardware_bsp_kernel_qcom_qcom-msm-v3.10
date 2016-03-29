@@ -324,6 +324,7 @@ struct qpnp_lbc_chip {
 	bool				fastchg_on;
 	bool				cfg_use_external_charger;
 	bool				cfg_chgr_led_support;
+	bool				cfg_disable_batt_if;
 	unsigned int			cfg_warm_bat_chg_ma;
 	unsigned int			cfg_cool_bat_chg_ma;
 	unsigned int			cfg_safe_voltage_mv;
@@ -2278,6 +2279,11 @@ static int qpnp_charger_read_dt_props(struct qpnp_lbc_chip *chip)
 		}
 	}
 
+	/* Get the bat-if-disabled property */
+	chip->cfg_disable_batt_if =
+		of_property_read_bool(chip->spmi->dev.of_node,
+					"qcom,batt-if-disabled");
+
 	pr_debug("vddmax-mv=%d, vddsafe-mv=%d, vinmin-mv=%d, ibatsafe-ma=$=%d\n",
 			chip->cfg_max_voltage_mv,
 			chip->cfg_safe_voltage_mv,
@@ -3061,7 +3067,7 @@ static int qpnp_lbc_main_probe(struct spmi_device *spmi)
 		}
 	}
 
-	if (chip->bat_if_base) {
+	if (chip->bat_if_base && !chip->cfg_disable_batt_if) {
 		chip->batt_present = qpnp_lbc_is_batt_present(chip);
 		chip->batt_psy.name = "battery";
 		chip->batt_psy.type = POWER_SUPPLY_TYPE_BATTERY;
